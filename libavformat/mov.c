@@ -2550,19 +2550,23 @@ static int mov_read_stsd(MOVContext *c, AVIOContext *pb, MOVAtom atom)
 
     if (entries <= 0) {
         av_log(c->fc, AV_LOG_ERROR, "invalid STSD entries %d\n", entries);
-        return AVERROR_INVALIDDATA;
+        ret = AVERROR_INVALIDDATA;
+        goto fail;
     }
 
     if (sc->extradata) {
         av_log(c->fc, AV_LOG_ERROR,
                "Duplicate stsd found in this track.\n");
-        return AVERROR_INVALIDDATA;
+        ret = AVERROR_INVALIDDATA;
+        goto fail;
     }
 
     /* Prepare space for hosting multiple extradata. */
     sc->extradata = av_mallocz_array(entries, sizeof(*sc->extradata));
-    if (!sc->extradata)
-        return AVERROR(ENOMEM);
+    if (!sc->extradata) {
+        ret = AVERROR(ENOMEM);
+        goto fail;
+    }
 
     sc->extradata_size = av_mallocz_array(entries, sizeof(*sc->extradata_size));
     if (!sc->extradata_size) {
